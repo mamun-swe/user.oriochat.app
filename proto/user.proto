@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package user;
+
+service UserService {
+  rpc GetUserInfo (UserRequest) returns (UserResponse);
+}
+
+message UserRequest {
+  string jwt_token = 1;
+}
+
+message UserResponse {
+  string id = 1;
+  string name = 2;
+  string username = 3;
+  string error = 4;
+}
