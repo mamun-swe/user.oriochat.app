@@ -1,37 +1,38 @@
-# Use the official Rust image
-FROM rust:1.82
+# Stage 1: Builder
+FROM rust:latest AS builder
 
-# Set working directory for the application
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the dependency files separately to leverage caching
+# Install necessary dependencies including protoc
+RUN apt-get update && \
+    apt-get install -y \
+    libssl-dev \
+    protobuf-compiler && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the Cargo.toml and Cargo.lock to the container to cache dependencies
 COPY Cargo.toml Cargo.lock ./
 
-# Install dependencies for your Rust project
-RUN apt-get update && apt-get install -y \
-    pkg-config \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy the rest of the application files
-COPY . .
-
-# Download dependencies (this will cache them if unchanged)
+# Build dependencies first, so we can cache them separately
 RUN cargo fetch
 
-# Copy the wait-for-it.sh script
-COPY wait-for-it.sh /usr/local/bin/wait-for-it.sh
-RUN chmod +x /usr/local/bin/wait-for-it.sh
+# Copy the entire source code into the container
+COPY . .
 
-# Ensure MySQL is ready before building the application
-RUN /usr/local/bin/wait-for-it.sh rust_mysql_db:3306 -- echo "MySQL is up, now starting build."
-
-
-# Build your program for release
+# Build the application in release mode
 RUN cargo build --release
 
-# Expose the port for your application
-EXPOSE 5000
+# Stage 2: Runtime
+FROM debian:bullseye-slim AS runtime
 
-# Command to wait for MySQL to be ready, then run the app
-CMD ["sh", "-c", "/usr/local/bin/wait-for-it.sh rust_mysql_db:3306 -- ./target/release/user-oriochat-app"]
+# Install necessary runtime dependencies
+RUN apt-get update && \
+    apt-get install -y libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the compiled binary from the builder stage
+COPY --from=builder /app/target/release/user-oriochat-app /usr/local/bin/user-oriochat-app
+
+# Set the default command for the container
+CMD ["user-oriochat-app"]

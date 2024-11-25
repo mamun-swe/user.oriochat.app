@@ -22,3 +22,7 @@ tonic-build = "0.12.3"
 
 [build]
 build-script-build = true
+
+[[bin]]
+name = "user-oriochat-app"
+path = "src/main.rs"
