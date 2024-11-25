@@ -4,19 +4,50 @@ use sqlx::mysql::MySqlPool;
 use std::env;
 mod middleware;
 use crate::middleware::my_middleware;
+use std::time::Duration;
+use tokio::time::sleep;
 
 mod controllers;
 mod db;
-mod models;
 mod grpc_server;
+mod models;
+
+async fn connect_to_database(database_url: &str) -> Result<MySqlPool, sqlx::Error> {
+    let mut retries = 0;
+    loop {
+        match MySqlPool::connect(database_url).await {
+            Ok(pool) => return Ok(pool),
+            Err(_) => {
+                retries += 1;
+                if retries > 5 {
+                    return Err(sqlx::Error::PoolTimedOut); // Or handle this as per your needs
+                }
+                // Sleep for 5 seconds before retrying
+                sleep(Duration::from_secs(5)).await;
+            }
+        }
+    }
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL not set");
-    let pool = MySqlPool::connect(&database_url)
-        .await
-        .expect("Failed to connect to the database");
+
+    // Attempt to connect to the database with retries
+    let pool = match connect_to_database(&database_url).await {
+        Ok(pool) => {
+            println!("Successfully connected to the database");
+            pool
+        }
+        Err(e) => {
+            eprintln!(
+                "Failed to connect to the database after several retries: {}",
+                e
+            );
+            return Ok(()); // Return or exit the application if DB is not available
+        }
+    };
 
     tokio::spawn(async {
         if let Err(e) = grpc_server::run_grpc_server().await {

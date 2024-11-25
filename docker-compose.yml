@@ -1,41 +1,18 @@
-version: "3.7"
+version: '3.8'
+
 services:
-  app:
+  rust_app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: oriochat-user-service-image
-    container_name: oriochat-user-service-container
+    environment:
+      - DATABASE_URL=mysql://root:rootx@127.0.0.1:3306/oriochat_user_db
+      - JWT_SECRET=12ZCDSGFERT4523
     ports:
       - "5000:5000"
-    depends_on:
-      oriochatusermysqldb:
-        condition: service_healthy
-    environment:
-      - DATABASE_URL=mysql://root:rootx@oriochatusermysqldb:3306/${MYSQL_DATABASE}
-      - JWT_SECRET=12ZCDSGFERT4523
     networks:
-      - oriochat-user-mysql-network
-    entrypoint: /bin/sh /app/wait-for-db.sh
+      - rust_shared_network
 
-  oriochatusermysqldb:
-    image: mysql:latest
-    container_name: orio-chat-service-db-container
-    environment:
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-    volumes:
-      - oriochat-user-mysql-data:/var/lib/mysql
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
-    networks:
-      - oriochat-user-mysql-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      retries: 10
-      interval: 3s
-      timeout: 30s
-volumes:
-  oriochat-user-mysql-data:
 networks:
-  oriochat-user-mysql-network:
-    name: oriochat-user-mysql-network
+  rust_shared_network:
+    driver: bridge

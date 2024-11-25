@@ -11,7 +11,7 @@ docker-compose -f docker-compose.db.yml up -d
 MYSQL_SERVICE_NAME="rust_mysql_db"
 MYSQL_CONTAINER=$(docker-compose -f docker-compose.db.yml ps -q "$MYSQL_SERVICE_NAME")
 MYSQL_USER="root"
-MYSQL_PASSWORD="root@root"
+MYSQL_PASSWORD="rootx"
 
 # Wait for MySQL container to be ready
 echo "Waiting for MySQL to be ready..."

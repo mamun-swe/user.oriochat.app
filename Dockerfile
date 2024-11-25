@@ -1,38 +1,41 @@
-# Stage 1: Builder
+# Step 1: Use the official Rust image as the base image
 FROM rust:latest AS builder
 
-# Set the working directory inside the container
-WORKDIR /app
+# Step 2: Set the working directory inside the container
+WORKDIR /usr/src/app
 
-# Install necessary dependencies including protoc
-RUN apt-get update && \
-    apt-get install -y \
-    libssl-dev \
-    protobuf-compiler && \
-    rm -rf /var/lib/apt/lists/*
+# Step 3: Install the protoc compiler and protobuf libraries
+RUN apt-get update && apt-get install -y protobuf-compiler libprotobuf-dev
 
-# Copy the Cargo.toml and Cargo.lock to the container to cache dependencies
+# Step 4: Copy the Cargo.toml and Cargo.lock files to leverage Docker caching
 COPY Cargo.toml Cargo.lock ./
 
-# Build dependencies first, so we can cache them separately
-RUN cargo fetch
+# Step 6: Copy the .sqlx directory with the metadata
+COPY .sqlx .sqlx
+COPY proto ./proto
 
-# Copy the entire source code into the container
+# Step 7: Copy the rest of the application code
 COPY . .
 
-# Build the application in release mode
+# Step 9: Build the project in release mode
 RUN cargo build --release
 
-# Stage 2: Runtime
-FROM debian:bullseye-slim AS runtime
+# Step 10: Create the runtime image (alpine-based)
+FROM debian:bullseye-slim
 
-# Install necessary runtime dependencies
+# Install dependencies, including the MySQL client
 RUN apt-get update && \
-    apt-get install -y libssl-dev && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y libssl-dev default-mysql-client && \
+    apt-get clean
 
-# Copy the compiled binary from the builder stage
-COPY --from=builder /app/target/release/user-oriochat-app /usr/local/bin/user-oriochat-app
+# Step 11: Copy the compiled Rust binary from the builder stage
+COPY --from=builder /usr/src/app/target/release/user-oriochat-app /usr/local/bin/user-oriochat-app
 
-# Set the default command for the container
+EXPOSE 5000
+
+# Set environment variables
+ENV DATABASE_URL=mysql://root:rootx@127.0.0.1:3306/oriochat_user_db
+ENV JWT_SECRET=12ZCDSGFERT4523
+
+# Step 13: Set the command to run the application
 CMD ["user-oriochat-app"]
