@@ -36,7 +36,7 @@ EXPOSE 5000
 EXPOSE 50051
 
 # Set environment variables
-ENV DATABASE_URL=mysql://root:rootx@172.18.0.1:3306/oriochat_user_db
+ENV DATABASE_URL=mysql://root:rootx@rust_db:3306/oriochat_user_db
 ENV JWT_SECRET=12ZCDSGFERT4523
 
 # Step 13: Set the command to run the application

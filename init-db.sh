@@ -4,7 +4,7 @@
 set -e
 
 # Start the MySQL container using docker-compose
-echo "Starting Docker Compose..."
+echo "Starting Docker Compose For Database..."
 docker-compose -f docker-compose.db.yml up -d
 
 # Define the MySQL container service name
@@ -42,3 +42,17 @@ INSERT INTO users (username, name, email, password) VALUES ('example', 'example'
 docker exec -i "$MYSQL_CONTAINER" mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -e "$SQL_COMMANDS"
 
 echo "Database populated successfully!"
+
+# Retrieve data from the users table and display it
+echo "Retrieving data from the users table..."
+
+SELECT_QUERY="SELECT id, username, name, email FROM oriochat_user_db.users;"
+
+# Execute SELECT query inside the MySQL container and capture the output
+USER_DATA=$(docker exec -i "$MYSQL_CONTAINER" mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -e "$SELECT_QUERY")
+
+# Echo the retrieved user data
+echo "User Data Retrieved:"
+echo "$USER_DATA"
+
+echo "Data retrieval complete!"
