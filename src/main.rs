@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{middleware::from_fn, web, App, HttpServer};
 use dotenv::dotenv;
 use sqlx::mysql::MySqlPool;
@@ -55,12 +56,19 @@ async fn main() -> std::io::Result<()> {
         }
     });
 
-      // Log the address where the server will run
+    // Log the address where the server will run
     let server_address = "0.0.0.0:5000";
     println!("Starting server at http://{}", server_address);
 
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allow_any_origin()
+            .allow_any_method()
+            .allow_any_header()
+            .max_age(3600);
+
         App::new()
+            .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
             .service(
                 web::scope("/profile")
