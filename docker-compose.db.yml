@@ -1,38 +1,23 @@
 version: "3.4"
-volumes:
-  rustdbdata:
-    name: oriochat_rustdbdata
 
 services:
-  rust_mysql_db:
+  rust_db:
     image: mysql:latest
-    container_name: rust_mysql_db
+    container_name: rust_db
     ports:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: "rootx"
     restart: always
     volumes:
-      - rustdbdata:/var/lib/mysql
-
+      - rust_dbdata:/var/lib/mysql
     networks:
-      - rust_app_network
+      - rust_network
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
-    restart: always
-    ports:
-      - "8080:80"
-    environment:
-      PMA_HOST: rust_mysql_db
-      PMA_USER: root
-      PMA_PASSWORD: "rootx"
-      UPLOAD_LIMIT: 300M
-    networks:
-      - rust_app_network
+volumes:
+  rust_dbdata:
 
 networks:
-  rust_app_network:
+  rust_network:
     driver: bridge
-    name: rust_app_network
+    name: rust_network

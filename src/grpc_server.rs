@@ -63,7 +63,7 @@ impl UserService for MyUserService {
 }
 
 pub async fn run_grpc_server() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "[::1]:50051".parse()?;
+    let addr = "[::]:50051".parse()?;
     let user_service = MyUserService::default();
 
     println!("Starting gRPC server at {:?}", addr);

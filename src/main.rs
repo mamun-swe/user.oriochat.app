@@ -55,6 +55,10 @@ async fn main() -> std::io::Result<()> {
         }
     });
 
+      // Log the address where the server will run
+    let server_address = "0.0.0.0:5000";
+    println!("Starting server at http://{}", server_address);
+
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone()))
@@ -67,7 +71,7 @@ async fn main() -> std::io::Result<()> {
             .route("/login", web::post().to(controllers::login))
             .route("/register", web::post().to(controllers::register))
     })
-    .bind("127.0.0.1:5000")?
+    .bind(server_address)?
     .run()
     .await
 }

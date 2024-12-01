@@ -21,20 +21,22 @@ COPY . .
 RUN cargo build --release
 
 # Step 10: Create the runtime image (alpine-based)
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 # Install dependencies, including the MySQL client
 RUN apt-get update && \
-    apt-get install -y libssl-dev default-mysql-client && \
+    apt-get install -y libssl-dev libssl3 default-mysql-client && \
     apt-get clean
 
 # Step 11: Copy the compiled Rust binary from the builder stage
 COPY --from=builder /usr/src/app/target/release/user-oriochat-app /usr/local/bin/user-oriochat-app
 
+# Expose both the HTTP and gRPC ports
 EXPOSE 5000
+EXPOSE 50051
 
 # Set environment variables
-ENV DATABASE_URL=mysql://root:rootx@127.0.0.1:3306/oriochat_user_db
+ENV DATABASE_URL=mysql://root:rootx@172.18.0.1:3306/oriochat_user_db
 ENV JWT_SECRET=12ZCDSGFERT4523
 
 # Step 13: Set the command to run the application

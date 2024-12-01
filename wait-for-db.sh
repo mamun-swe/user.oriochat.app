@@ -11,8 +11,8 @@ echo "MySQL is up and running."
 # Initialize database if necessary (keep this part as is)
 echo "Initializing database if necessary..."
 mysql -h ${MYSQL_DATABASE} -u root -p${MYSQL_PASSWORD} <<EOF
-CREATE DATABASE IF NOT EXISTS oriochat_user_db;
-USE oriochat_user_db;
+CREATE DATABASE IF NOT EXISTS oriochat-user-db;
+USE oriochat-user-db;
 DROP TABLE IF EXISTS users;
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,

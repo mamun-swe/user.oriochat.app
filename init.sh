@@ -8,7 +8,7 @@ echo "Starting Docker Compose..."
 docker-compose -f docker-compose.db.yml up -d
 
 # Define the MySQL container service name
-MYSQL_SERVICE_NAME="rust_mysql_db"
+MYSQL_SERVICE_NAME="rust_db"
 MYSQL_CONTAINER=$(docker-compose -f docker-compose.db.yml ps -q "$MYSQL_SERVICE_NAME")
 MYSQL_USER="root"
 MYSQL_PASSWORD="rootx"
