@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 use tonic::{transport::Server, Request, Response, Status};
 use std::env;
 
-pub mod user_service {
-    tonic::include_proto!("user");
+pub mod token_service {
+    tonic::include_proto!("token");
 }
 
-use user_service::user_service_server::{UserService, UserServiceServer};
-use user_service::{UserRequest, UserResponse};
+use token_service::token_service_server::{TokenService, TokenServiceServer};
+use token_service::{TokenRequest, TokenResponse};
 
 #[derive(Serialize, Deserialize)]
 pub struct JWTClaims {
@@ -19,15 +19,15 @@ pub struct JWTClaims {
 }
 
 #[derive(Default)]
-pub struct MyUserService;
+pub struct MyTokenService;
 
 #[tonic::async_trait]
-impl UserService for MyUserService {
-    async fn get_user_info(
+impl TokenService for MyTokenService {
+    async fn get_token_info(
         &self,
-        request: Request<UserRequest>,
-    ) -> Result<Response<UserResponse>, Status> {
-        let token = request.into_inner().jwt_token;
+        request: Request<TokenRequest>,
+    ) -> Result<Response<TokenResponse>, Status> {
+        let token = request.into_inner().token;
 
         // Replace with your JWT secret
         let jwt_secret = env::var("JWT_SECRET")
@@ -39,7 +39,7 @@ impl UserService for MyUserService {
             Ok(token_data) => {
                 let claims = token_data.claims;
 
-                let response = UserResponse {
+                let response = TokenResponse {
                     id: claims.sub,
                     name: claims.name,
                     username: claims.username,
@@ -49,7 +49,7 @@ impl UserService for MyUserService {
                 Ok(Response::new(response))
             }
             Err(err) => {
-                let response = UserResponse {
+                let response = TokenResponse {
                     id: "".to_string(),
                     name: "".to_string(),
                     username: "".to_string(),
@@ -64,12 +64,12 @@ impl UserService for MyUserService {
 
 pub async fn run_grpc_server() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::]:50051".parse()?;
-    let user_service = MyUserService::default();
+    let user_service = MyTokenService::default();
 
     println!("Starting gRPC server at {:?}", addr);
 
     Server::builder()
-        .add_service(UserServiceServer::new(user_service))
+        .add_service(TokenServiceServer::new(user_service))
         .serve(addr)
         .await?;
 
